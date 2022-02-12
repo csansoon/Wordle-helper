@@ -50,8 +50,8 @@ def solver_input(fixed, wrong_position, incorrect):
 
 
 def ask_for_input(fixed, wrong_position, incorrect):
-    # return human_input(fixed, wrong_position, incorrect)
-    return solver_input(fixed, wrong_position, incorrect)
+    return human_input(fixed, wrong_position, incorrect)
+    # return solver_input(fixed, wrong_position, incorrect)
 
 
 def new_round(print_console = True):
