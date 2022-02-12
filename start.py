@@ -25,7 +25,9 @@ def guess(word):
 @eel.expose
 def get_answer():
     global wordle
-    return str.upper(wordle.solution)
+    if wordle:
+        return str.upper(wordle.solution)
+    return None;
 
 @eel.expose
 def get_random_name():

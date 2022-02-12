@@ -16,7 +16,6 @@ pointer = 0;
 restart_game();
 
 function restart_game() {
-  console.log("RESTARTING...");
   for (var i = 0; i < 6; i++) {
     for (var j = 0; j < 5; j++) {
       letter[i][j].innerHTML = "";
@@ -29,6 +28,7 @@ function restart_game() {
       letter[i][j].classList.remove("filled");
     }
   }
+  show_answer();
   currentRow = 0;
   pointer = 0;
   eel.new_game();
@@ -85,7 +85,7 @@ async function guess_word(word) {
 
 async function show_answer() {
   solution = await eel.get_answer()();
-  document.getElementById("errorMessage").innerHTML = "Answer was " + solution;
+  if (solution) document.getElementById("errorMessage").innerHTML = "Answer was " + solution;
 }
 
 function clear_error_message() {
@@ -98,6 +98,7 @@ document.addEventListener("keydown", function (event) {
   var isLetter = (key.length == 1 && ((key >= "A" && key <= "Z") || (key >= "a") && key <= "z"));
 
   if (isLetter && pointer < 5) {
+    clear_error_message();
     letter[currentRow][pointer].innerHTML = key;
     letter[currentRow][pointer].classList.add("filled");
     letter[currentRow][pointer].classList.remove("empty");
