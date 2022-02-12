@@ -15,7 +15,6 @@ def guess(word):
     global wordle
     word = str.lower(word)
     try:
-        eel.console_log(word);
         wordle.guess(word)
         return wordle.last_guess.state;
     except InvalidGuess as errormsg:

@@ -1,7 +1,5 @@
 var letter = [];
 
-
-
 for (var i = 0; i < 6; i++) {
   col = [];
   for (var j = 0; j < 5; j++) {
@@ -33,6 +31,7 @@ function restart_game() {
   pointer = 0;
   eel.new_game();
   letter[0][0].classList.add("selected");
+  stopConfetti();
 }
 
 function show_empty_cells() {
@@ -61,23 +60,36 @@ function show_wrong_word() {
   }, 500);
 }
 
+function win()
+{
+  unselect_all();
+  currentRow = 6;
+  pointer = 5;
+  startConfetti();
+}
+
 async function guess_word(word) {
   if (currentRow < 6) {
     word = "";
     for (var i = 0; i < 5; i++) word += letter[currentRow][i].innerHTML;
     r = await eel.guess(word)();
     if (r) {
+      all_correct = true;
       for (var i = 0; i < 5; i++) {
         letter[currentRow][i].classList.remove("filled");
         if (r[i] == 0) letter[currentRow][i].classList.add("neutral");
         else if (r[i] == 1) letter[currentRow][i].classList.add("hint");
         else if (r[i] == 2) letter[currentRow][i].classList.add("correct");
+        if (r[i] != 2) all_correct = false;
       }
-      pointer = 0;
-      unselect_all();
-      currentRow++;
-      if (currentRow < 6) letter[currentRow][0].classList.add("selected");
-      else show_answer();
+      if (all_correct) win();
+      else {
+        pointer = 0;
+        unselect_all();
+        currentRow++;
+        if (currentRow < 6) letter[currentRow][0].classList.add("selected");
+        else show_answer();
+      }
     }
     else show_wrong_word();
   }
