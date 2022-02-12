@@ -61,7 +61,7 @@ class Wordle:
                 solution_tmp = self.__remove_letter(solution_tmp, word[i])
                 current_guess.state[i] = 2
         for i in range(len(self.solution)):
-            if word[i] in solution_tmp:
+            if current_guess.state[i] == 0 and word[i] in solution_tmp:
                 solution_tmp = self.__remove_letter(solution_tmp, word[i])
                 current_guess.state[i] = 1
         self.last_guess = current_guess

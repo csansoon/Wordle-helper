@@ -1,4 +1,7 @@
 var letter = [];
+
+
+
 for (var i = 0; i < 6; i++) {
   col = [];
   for (var j = 0; j < 5; j++) {
@@ -7,10 +10,30 @@ for (var i = 0; i < 6; i++) {
   letter.push(col);
 }
 
-var currentRow = 0;
-var pointer = 0;
+currentRow = 0;
+pointer = 0;
 
-eel.new_game();
+restart_game();
+
+function restart_game() {
+  console.log("RESTARTING...");
+  for (var i = 0; i < 6; i++) {
+    for (var j = 0; j < 5; j++) {
+      letter[i][j].innerHTML = "";
+      letter[i][j].classList.remove("selected");
+      letter[i][j].classList.remove("empty");
+      letter[i][j].classList.remove("wrong");
+      letter[i][j].classList.remove("neutral");
+      letter[i][j].classList.remove("hint");
+      letter[i][j].classList.remove("correct");
+      letter[i][j].classList.remove("filled");
+    }
+  }
+  currentRow = 0;
+  pointer = 0;
+  eel.new_game();
+  letter[0][0].classList.add("selected");
+}
 
 function show_empty_cells() {
   for (var i = pointer; i < 5; i++)
@@ -21,11 +44,19 @@ function show_empty_cells() {
   }, 500);
 }
 
+function select_all() {
+  for (var i = 0; i < 5; i++) letter[currentRow][i].classList.add("selected");
+}
+
+function unselect_all() {
+  for (var i = 0; i < 5; i++) letter[currentRow][i].classList.remove("selected");
+}
+
 function show_wrong_word() {
-  for (var i = pointer; i < 5; i++)
+  for (var i = 0; i < 5; i++)
     letter[currentRow][i].classList.add("wrong");
   setTimeout(() => {
-    for (var i = pointer; i < 5; i++)
+    for (var i = 0; i < 5; i++)
       letter[currentRow][i].classList.remove("wrong");
   }, 500);
 }
@@ -37,21 +68,24 @@ async function guess_word(word) {
     r = await eel.guess(word)();
     if (r) {
       for (var i = 0; i < 5; i++) {
-        letter[currentRow][i].classList.remove('blank');
-        if (r[i] == 0) letter[currentRow][i].classList.add("blank");
+        letter[currentRow][i].classList.remove("filled");
+        if (r[i] == 0) letter[currentRow][i].classList.add("neutral");
         else if (r[i] == 1) letter[currentRow][i].classList.add("hint");
         else if (r[i] == 2) letter[currentRow][i].classList.add("correct");
       }
       pointer = 0;
+      unselect_all();
       currentRow++;
+      if (currentRow < 6) letter[currentRow][0].classList.add("selected");
+      else show_answer();
     }
     else show_wrong_word();
   }
 }
 
 async function show_answer() {
-  let answer = eel.get_answer();
-  document.getElementById("errorMessage").innerHTML = "Answer was " + answer;
+  solution = await eel.get_answer()();
+  document.getElementById("errorMessage").innerHTML = "Answer was " + solution;
 }
 
 function clear_error_message() {
@@ -65,15 +99,23 @@ document.addEventListener("keydown", function (event) {
 
   if (isLetter && pointer < 5) {
     letter[currentRow][pointer].innerHTML = key;
-    letter[currentRow][pointer].classList.add("blank");
+    letter[currentRow][pointer].classList.add("filled");
+    letter[currentRow][pointer].classList.remove("empty");
+    letter[currentRow][pointer].classList.remove("wrong");
+    letter[currentRow][pointer].classList.remove("selected");
     pointer++;
+    if (pointer < 5) letter[currentRow][pointer].classList.add("selected");
+    else select_all();
   }
 
   else if (key == "Backspace" && pointer > 0) {
     clear_error_message();
+    if (pointer < 5) letter[currentRow][pointer].classList.remove("selected");
+    else unselect_all();
     pointer--;
     letter[currentRow][pointer].innerHTML = "";
-    letter[currentRow][pointer].classList.remove("blank");
+    letter[currentRow][pointer].classList.remove("filled");
+    letter[currentRow][pointer].classList.add("selected");
   }
 
   else if (key == "Enter") {
