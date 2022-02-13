@@ -23,6 +23,12 @@ class Wordle:
         self.last_guess = None
     
     def __init_wordlist(self, wordlist):
+        if wordlist is None and self.solution is None:
+            import json
+            import random
+            with open('data/answers.json') as words_file:
+                self.solution = str.lower(random.choice(json.load(words_file))['word'])
+
         if wordlist is None:
             import json
             with open('data/words.json') as words_file:
@@ -30,13 +36,10 @@ class Wordle:
         else:
             self.wordlist = wordlist
         
-        if not self.wordlist: raise EmptyWordlist()
-        
         if self.solution is None:
-            import json
-            import random
-            with open('data/answers.json') as words_file:
-                self.solution = str.lower(random.choice(json.load(words_file))['word'])
+            self.solution = str.lower(random.choice(wordlist))
+        
+        if not self.wordlist: raise EmptyWordlist()
         
         for word in self.wordlist:
             if len(word) != len(self.solution):
