@@ -1,82 +1,37 @@
-import json
+from wordle import *
+from operator import itemgetter
 
 class WordleSolver:
-    def analyse_words(self):
-        self.words = []
-        with open('data/words.json') as words_file:
-            raw_words = json.load(words_file)
-
-        appearances = [{},{},{},{},{}]
-        for word in raw_words:
-            for i in range(len(word)):
-                letter = word[i]
-                if letter not in appearances[i]:
-                    appearances[i][letter] = 0
-                appearances[i][letter] = appearances[i][letter] + 1
-        for word in raw_words:
+    def __init__(self, wordlist, possible_words = None):
+        self.wordlist = wordlist
+        if possible_words is None:
+            self.possible_words = wordlist
+        else:
+            self.possible_words = possible_words
+    
+    def update_possible_words(self, guess):
+        self.possible_words = WordleSolver.discard(self.possible_words, guess)
+        return self.possible_words
+    
+    def get_best_answers(self):
+        wordlist_score = []
+        len_possible_words = len(self.possible_words)
+        for word in self.wordlist:
             score = 0
-            for i in range(len(word)):
-                letter = word[i]
-                score = score + appearances[i][letter]
-            self.words.append({
-                'word': word.upper(),
-                'score': score
-            })
+            for possible_solution in self.possible_words:
+                score = score + len_possible_words - len(WordleSolver.discard(self.possible_words, Guess(word, possible_solution)))
+            if score > 0:
+                wordlist_score.append({
+                    'word': word,
+                    'score': score / len(self.possible_words)
+                })
+        return sorted(wordlist_score, key=itemgetter('score'), reverse=True)
 
-
-    def __init__(self):
-        self.analyse_words()
-        
-    def find_best_word(self, fixed = ['','','','',''], wrong_position = [[],[],[],[],[]], incorrect = [], count = 1, show_scores = False):
-        if len(fixed) != 5:
-            raise ValueError('Invalid number of fixed characters.')
-        if len(wrong_position) != 5:
-            raise ValueError('Invalid number of wrong positioned letters.')
-        
-        bests = []
-        for i in range(count):
-            bests.append({
-                'word': '',
-                'score': 0
-            })
-
-        for wordle in self.words:
-            word = wordle['word']
-            score = wordle['score']
-            valid = True
-
-            for i in range(5):
-                if fixed[i] != '' and ord(fixed[i].upper()) >= ord('A') and ord(fixed[i].upper()) <= ord('Z'): # If there is a fixed letter here
-                    if fixed[i] != word[i]:
-                        valid = False
-                        break
-                elif word[i] in incorrect or word[i] in wrong_position[i]:
-                    valid = False
-                    break
-            for position in wrong_position:
-                for letter in position:
-                    if not letter in word:
-                        valid = False
-                        break
-                    if not valid: break
-
-            if valid:
-                for i in range(count):
-                    if score > bests[i]['score']:
-                        for j in reversed(range(i + 1, count)):
-                            bests[j] = bests[j - 1]
-                        new_best = {'word': word, 'score': score}
-                        bests[i] = new_best
-                        break
-                
-        if show_scores:
-            return bests
-
-        if count == 1:
-            return bests[0]['word']
-        
-        result = []
-        for i in range(count):
-            result.append(bests[i]['word'])
-        return result
-                
+    
+    def discard(wordlist, guess):
+        possible_words = []
+        for possible_answer in wordlist:
+            if possible_answer == guess.word: pass
+            if Guess(guess.word, possible_answer).state == guess.state:
+                possible_words.append(possible_answer)
+        return possible_words

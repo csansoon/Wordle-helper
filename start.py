@@ -1,14 +1,18 @@
 import eel
 from wordle import *
+from solver import WordleSolver
 
 eel.init('web')
 
 wordle = None
+solver = None
 
 @eel.expose
 def new_game():
     global wordle
+    global solver
     wordle = Wordle() 
+    solver = WordleSolver(wordle.get_wordlist())
 
 @eel.expose
 def guess(word):
@@ -16,6 +20,7 @@ def guess(word):
     word = str.lower(word)
     try:
         wordle.guess(word)
+        solver.update_possible_words(wordle.last_guess)
         return wordle.last_guess.state;
     except InvalidGuess as errormsg:
         eel.show_error(str(errormsg));
@@ -29,19 +34,15 @@ def get_answer():
     return None;
 
 @eel.expose
-def get_random_name():
-    eel.prompt_alerts('Random name')
+def update_possible_words():
+    global solver
+    eel.set_answers(solver.possible_words)
 
 @eel.expose
-def get_random_number():
-    eel.prompt_alerts(random.randint(1, 100))
+def update_best_guesses():
+    global solver
+    wordlist_score = solver.get_best_answers()
+    eel.set_guesses(wordlist_score)
 
-@eel.expose
-def get_date():
-    eel.prompt_alerts(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-
-@eel.expose
-def get_ip():
-    eel.prompt_alerts('127.0.0.1')
 
 eel.start('index.html')

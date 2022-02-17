@@ -6,12 +6,36 @@ class InvalidGuess(Exception):
 
 # Each state of the Guess can be 0 (wrong), 1 (right letter but wrong position) or 2 (correct)
 class Guess:
-    def __init__(self, word):
-        self.word = word
+
+    def __init__(self, word, solution):
+        # Initialize
+        self.word = str.lower(word)
         self.state = []
-        for i in range(len(word)):
+        for i in range(len(solution)):
             self.state.append(0)
-    
+
+        if len(word) != len(solution):
+            raise InvalidGuess(f'Word ({word}) length is different than solution ({len(solution)})')
+
+        # Find state from word and solution
+        solution_tmp = solution
+        for i in range(len(solution)):
+            if word[i] == solution[i]:
+                solution_tmp = Guess.__remove_letter(solution_tmp, word[i])
+                self.state[i] = 2
+        for i in range(len(solution)):
+            if self.state[i] == 0 and word[i] in solution_tmp:
+                solution_tmp = Guess.__remove_letter(solution_tmp, word[i])
+                self.state[i] = 1
+
+    def __remove_letter(word, letter):
+        length = len(word)
+        for i in range(length):
+            if(word[i] == letter):
+                return word[0:i] + word[i + 1:length]
+        return word
+        
+
 class Wordle:
 
     def __init__(self, word=None, max_rounds=6, wordlist=None):
@@ -57,25 +81,11 @@ class Wordle:
         if self.round >= self.max_rounds:
             raise InvalidGuess("Game is over.")
         word = str.lower(word)
-        current_guess = Guess(word)
-        solution_tmp = self.solution
-        for i in range(len(self.solution)):
-            if word[i] == self.solution[i]:
-                solution_tmp = self.__remove_letter(solution_tmp, word[i])
-                current_guess.state[i] = 2
-        for i in range(len(self.solution)):
-            if current_guess.state[i] == 0 and word[i] in solution_tmp:
-                solution_tmp = self.__remove_letter(solution_tmp, word[i])
-                current_guess.state[i] = 1
+        current_guess = Guess(word, self.solution)
         self.last_guess = current_guess
         self.guesses.append(current_guess)
         self.round = self.round + 1
         return self.guesses
-
-    def __remove_letter(self, word, letter):
-        length = len(word)
-        for i in range(length):
-            if(word[i] == letter):
-                return word[0:i] + word[i + 1:length]
-        return word
         
+    def get_wordlist(self):
+        return self.wordlist
